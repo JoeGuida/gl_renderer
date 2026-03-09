@@ -10,6 +10,7 @@
 #include <renderer/renderer.hpp>
 #include <renderer/shader.hpp>
 #include <renderer/types.hpp>
+#include <renderer/vertex.hpp>
 #include <window/window.hpp>
 
 constexpr uint32_t width = 1280; 
@@ -39,11 +40,10 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
 
     u32 vao;
     u32 vbo;
-    std::array<float, 18> vertices {
-        // position         // color
-        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-         0.0f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+    std::array<Vertex, 3> vertices {
+        Vertex { .position = vec3(-0.5f, -0.5f, 0.0f), .color = vec3(0.0f, 1.0f, 0.0f) },
+        Vertex { .position = vec3( 0.0f,  0.5f, 0.0f), .color = vec3(0.0f, 0.0f, 1.0f) },
+        Vertex { .position = vec3( 0.5f, -0.5f, 0.0f), .color = vec3(1.0f, 0.0f, 0.0f) }
     };
 
     std::filesystem::path shader_path = std::filesystem::current_path() / "shaders";
@@ -76,10 +76,10 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, color)));
     glEnableVertexAttribArray(1);
 
     glEnable(GL_DEPTH_TEST);
