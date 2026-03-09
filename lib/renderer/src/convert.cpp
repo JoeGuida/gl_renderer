@@ -1,11 +1,11 @@
 #include <renderer/convert.hpp>
 
-std::string Convert::to_string(ShaderType type) {
-    switch(type) {
-        case ShaderType::Vertex: {
+std::string Convert::to_string(ShaderStage stage) {
+    switch(stage) {
+        case ShaderStage::Vertex: {
             return "Vertex";
         }
-        case ShaderType::Fragment: {
+        case ShaderStage::Fragment: {
             return "Fragment";
         }
         default: {

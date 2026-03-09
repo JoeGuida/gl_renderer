@@ -3,10 +3,10 @@
 
 #include <string>
 
-#include <renderer/shader_type.hpp>
+#include <renderer/shader_stage.hpp>
 
 struct Convert {
-    static std::string to_string(ShaderType type);
+    static std::string to_string(ShaderStage stage);
 };
 
 #endif

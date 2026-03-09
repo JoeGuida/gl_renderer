@@ -10,31 +10,55 @@
 #include <renderer/file.hpp>
 #include <renderer/gl_loader.hpp>
 
-std::expected<std::string, ShaderError> get_extension(ShaderType type) {
-    switch(type) {
-        case ShaderType::Vertex: {
-            return ".vert";
+std::expected<u32, ShaderError> compile(const Shader& shader) {
+    std::filesystem::path shader_path = std::filesystem::current_path() / "shaders";
+    std::vector<u32> compiled;
+    for(auto stage : shader.stages) {
+        auto id = compile_shader(shader.name, stage);
+        if(!id.has_value()) {
+            ShaderError error{
+                .message = std::format("ShaderError :: Error compiling shader {}", shader_path.string())
+            };
+
+            return std::unexpected(error);
         }
-        case ShaderType::Fragment: {
-            return ".frag";
+
+        compiled.push_back(id.value());
+    }
+
+    auto shader_program = link_shaders(compiled);
+    if(!shader_program.has_value()) {
+        return std::unexpected(shader_program.error());
+    }
+
+    return shader_program.value();
+}
+
+std::string get_shader_filename(const std::string& name, ShaderStage stage) {
+    switch(stage) {
+        case ShaderStage::Vertex: {
+            return std::format("{}.vert", name);
+        }
+        case ShaderStage::Fragment: {
+            return std::format("{}.frag", name);
         }
         default: {
-            ShaderError error{
-                .message = std::format("ShaderError :: Invalid Shader Type {}", Convert::to_string(type))
-            };
-            return std::unexpected(error);
+            return "";
         }
     }
 }
 
-std::expected<u32, std::variant<FileError, ShaderError>> compile_shader(const std::filesystem::path& source_folder, const std::string& name, ShaderType type) {
-    auto extension = get_extension(type);
-    if(!extension.has_value()) {
-        return std::unexpected(extension.error());
+std::expected<u32, std::variant<FileError, ShaderError>> compile_shader(const std::string& name, ShaderStage stage) {
+    std::string filename = get_shader_filename(name, stage);
+
+    if(filename.empty()) {
+        FileError error{
+            .message = std::format("FileError :: Error reading file {}", name)
+        };
+        return std::unexpected(error);
     }
 
-    std::string shader_filename = name + extension.value();
-    std::filesystem::path filepath = source_folder / shader_filename;
+    std::filesystem::path filepath = std::filesystem::current_path() / "shaders" / filename;
     std::ifstream shader_file(filepath);
     if(!shader_file) {
         FileError error{
@@ -49,7 +73,7 @@ std::expected<u32, std::variant<FileError, ShaderError>> compile_shader(const st
     std::string buffer(size, '\0');
     shader_file.read(&buffer[0], size);
 
-    u32 id = glCreateShader(static_cast<GLenum>(type));
+    u32 id = glCreateShader(static_cast<GLenum>(stage));
     const char* s = buffer.data();
 	glShaderSource(id, 1, &s, nullptr);
 	glCompileShader(id);
@@ -72,10 +96,12 @@ std::expected<u32, std::variant<FileError, ShaderError>> compile_shader(const st
 	return id;
 }
 
-std::expected<u32, ShaderError> link_shaders(u32 vertex, u32 fragment) {
-    uint32_t program = glCreateProgram();
-    glAttachShader(program, vertex);
-	glAttachShader(program, fragment);
+std::expected<u32, ShaderError> link_shaders(const std::vector<u32> compiled) {
+    u32 program = glCreateProgram();
+
+    for(auto id : compiled) {
+        glAttachShader(program, id);
+    }
 	glLinkProgram(program);
 
 	int success;
@@ -88,8 +114,9 @@ std::expected<u32, ShaderError> link_shaders(u32 vertex, u32 fragment) {
 		glGetProgramInfoLog(program, log_length, nullptr, log.data());
 
 		glDeleteProgram(program);
-	    glDeleteShader(vertex);
-	    glDeleteShader(fragment);
+        for(auto id : compiled) {
+	        glDeleteShader(id);
+        }
 
         ShaderError error{
             .message = std::format("ShaderError :: shader program linking failed :: {}", log)
@@ -97,10 +124,10 @@ std::expected<u32, ShaderError> link_shaders(u32 vertex, u32 fragment) {
 		return std::unexpected(error);
 	}
 
-	glDetachShader(program, vertex);
-	glDetachShader(program, fragment);
-	glDeleteShader(vertex);
-	glDeleteShader(fragment);
+    for(auto id : compiled) {
+        glDetachShader(program, id);
+        glDeleteShader(id);
+    }
 
 	return program;
 }

@@ -1,9 +1,9 @@
-#ifndef RENDERER_SHADER_TYPE_HPP
-#define RENDERER_SHADER_TYPE_HPP
+#ifndef RENDERER_SHADER_STAGE_HPP
+#define RENDERER_SHADER_STAGE_HPP
 
 #include <renderer/glcorearb.h>
 
-enum class ShaderType : GLenum {
+enum class ShaderStage : GLenum {
     Vertex      = GL_VERTEX_SHADER,
     Fragment    = GL_FRAGMENT_SHADER,
     Geometry    = GL_GEOMETRY_SHADER,
