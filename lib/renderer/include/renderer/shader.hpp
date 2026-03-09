@@ -1,22 +1,27 @@
 #ifndef RENDERER_SHADER_HPP
 #define RENDERER_SHADER_HPP
 
-#include <cstdint>
 #include <expected>
 #include <string>
-#include <unordered_map>
-#include <vector>
+#include <variant>
 
-#include <Windows.h>
+#include <window/win32.hpp>
 
-#include <glm/mat4x4.hpp>
-#include <glm/vec3.hpp>
+#include <renderer/file.hpp>
+#include <renderer/gl_loader.hpp>
+#include <renderer/shader_type.hpp>
+#include <renderer/types.hpp>
 
-std::expected<uint32_t, std::string> compile_shader(const std::string& source_folder, const std::string& name, uint32_t type);
-std::expected<uint32_t, std::string> link_shaders(uint32_t vertex_shader, uint32_t fragment_shader);
-void set_shader_uniform(uint32_t program, const std::string& uniform, float value);
-void set_shader_uniform(uint32_t program, const std::string& uniform, const glm::mat4x4& value);
-void set_shader_uniform(uint32_t program, const std::string& uniform, const glm::vec3& value);
+struct ShaderError {
+    std::string message;
+};
+
+std::expected<std::string, ShaderError> get_extension(ShaderType type);
+std::expected<u32, std::variant<FileError, ShaderError>> compile_shader(const std::filesystem::path& source_folder, const std::string& name, ShaderType type);
+std::expected<u32, ShaderError> link_shaders(u32 vertex, u32 fragment);
+void set_shader_uniform(u32 program, const std::string& uniform, float value);
+void set_shader_uniform(u32 program, const std::string& uniform, const mat4& value);
+void set_shader_uniform(u32 program, const std::string& uniform, const vec3& value);
 
 #endif
 

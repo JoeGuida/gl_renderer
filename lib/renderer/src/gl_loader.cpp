@@ -1,7 +1,5 @@
 #include <renderer/gl_loader.hpp>
 
-#include <spdlog/spdlog.h>
-
 PFNGLATTACHSHADERPROC             glAttachShader             = nullptr;
 PFNGLBINDBUFFERPROC               glBindBuffer               = nullptr;
 PFNGLBINDBUFFERBASEPROC           glBindBufferBase           = nullptr;
@@ -70,6 +68,5 @@ void load_gl_functions() {
     wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 
     loaded = true;
-    spdlog::info("gl functions loaded");
 }
 

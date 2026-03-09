@@ -2,6 +2,16 @@
 
 #include <functional>
 
+#ifndef GL_CONTEXT_MACROS
+#define GL_CONTEXT_MACROS
+
+#define WGL_CONTEXT_MAJOR_VERSION_ARB    0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB    0x2092
+#define WGL_CONTEXT_PROFILE_MASK_ARB     0x9126
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
+
+#endif
+
 std::pair<uint32_t, uint32_t> get_window_size(PlatformWindow* window) {
     RECT client_rect;
     GetClientRect(window->hwnd, &client_rect);
@@ -25,6 +35,7 @@ void run_window(PlatformWindow* handle, std::function<void()> draw) {
         }
 
         draw();
+        SwapBuffers(handle->hdc);
     }
 }
 
@@ -78,41 +89,12 @@ std::expected<std::unique_ptr<PlatformWindow>, std::string> initialize_window(HI
         return std::unexpected("error creating window! :: hdc is null");
     }
 
-    PIXELFORMATDESCRIPTOR pfd {
-        .nSize = sizeof(PIXELFORMATDESCRIPTOR),
-        .nVersion = 1,
-        .dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-        .iPixelType = PFD_TYPE_RGBA,
-        .cColorBits = 32,
-        .cDepthBits = 24,
-        .cStencilBits = 8,
-        .iLayerType = PFD_MAIN_PLANE
-    };
-
-    int pixel_format = ChoosePixelFormat(hdc, &pfd);
-    if(!pixel_format) {
-        return std::unexpected("error choosing pixel format!");
-    }
-    if(!SetPixelFormat(hdc, pixel_format, &pfd)) {
-        return std::unexpected("error setting pixel format!");
-    }
-
-    HGLRC hglrc = wglCreateContext(hdc);
-    if(!hglrc) {
-        return std::unexpected("error creating gl context");
-    }
-
-    if(!wglMakeCurrent(hdc, hglrc)) {
-        return std::unexpected("failed to make gl context current");
-    }
-
     ShowWindow(hwnd, show_window_flags);
     UpdateWindow(hwnd);
 
     std::unique_ptr<PlatformWindow> handle = std::make_unique<PlatformWindow>();
     handle->hwnd = hwnd;
     handle->hdc = hdc;
-    handle->hglrc = hglrc;
 
     return handle;
 }

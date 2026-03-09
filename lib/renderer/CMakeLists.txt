@@ -8,8 +8,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(spdlog CONFIG REQUIRED)
 
 add_library(renderer STATIC
+    src/convert.cpp
     src/gl_loader.cpp
     src/logger.cpp
+    src/renderer.cpp
     src/shader.cpp
 )
 
@@ -17,4 +19,4 @@ target_include_directories(renderer PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(renderer spdlog::spdlog_header_only)
+target_link_libraries(renderer window spdlog::spdlog_header_only)
