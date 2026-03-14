@@ -22,12 +22,12 @@ struct Shader {
 };
 
 std::expected<u32, ShaderError> compile(const Shader& shader);
-std::string get_shader_filename(const std::string& name, ShaderStage stage);
-std::expected<u32, std::variant<FileError, ShaderError>> compile_shader(const std::string& name, ShaderStage stage);
+std::filesystem::path get_shader_path(const std::string& name, ShaderStage stage);
+std::expected<u32, std::variant<FileError, ShaderError>> compile_shader(std::filesystem::path path, ShaderStage stage);
 std::expected<u32, ShaderError> link_shaders(const std::vector<u32> compiled);
 void set_shader_uniform(u32 program, const std::string& uniform, float value);
-void set_shader_uniform(u32 program, const std::string& uniform, const mat4& value);
-void set_shader_uniform(u32 program, const std::string& uniform, const vec3& value);
+void set_shader_uniform(u32 program, const std::string& uniform, const glm::mat4& value);
+void set_shader_uniform(u32 program, const std::string& uniform, const glm::vec3& value);
 
 #endif
 

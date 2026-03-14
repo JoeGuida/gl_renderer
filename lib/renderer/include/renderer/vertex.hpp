@@ -4,8 +4,8 @@
 #include <renderer/types.hpp>
 
 struct Vertex {
-    vec3 position;
-    vec3 color;
+    glm::vec3 position;
+    glm::vec3 color;
 };
 
 #endif

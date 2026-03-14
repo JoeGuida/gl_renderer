@@ -41,6 +41,7 @@ extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 
 inline bool loaded = false;
 void load_gl_functions();
+void load_wglCreateContextAttribsARB();
 
 #endif
 

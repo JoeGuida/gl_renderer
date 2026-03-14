@@ -1,11 +1,15 @@
 #version 460 core
 
-layout (location = 0) in vec3 pos;
-layout (location = 1) in vec3 color;
+const uint N = 256;
+
+layout (std140, binding = 0) uniform vertex_data {
+    vec3 positions[N];
+    vec3 colors[N];
+};
 
 out vec3 vertex_color;
 
 void main() {
-    vertex_color = color;
-    gl_Position = vec4(pos, 1.0);
+    gl_Position = vec4(positions[gl_VertexID], 1.0);
+    vertex_color = colors[gl_VertexID];
 }

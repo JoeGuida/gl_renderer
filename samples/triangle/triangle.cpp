@@ -23,7 +23,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     }
 
     // initialize a win32 window
-    auto window_handle = initialize_window(instance, show_window, width, height, L"window class", L"renderer");
+    auto window_handle = initialize_window(instance, show_window, width, height, L"window class", L"Triangle");
     if(!window_handle.has_value()) {
         spdlog::error(window_handle.error());
     }
@@ -34,6 +34,11 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         .handle = std::move(window_handle.value())
     };
 
+#ifdef DEBUG
+    // sometimes tools like RenderDoc need to be attached to the process before opengl is initialized
+    MessageBoxA(nullptr, "Continue?", "Continue?", MB_OK);
+#endif
+
     auto gl_initialized = initialize_opengl(window.handle.get());
     if(!gl_initialized.has_value()) {
         spdlog::error(gl_initialized.error());
@@ -43,9 +48,9 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     u32 vbo;
     u32 ubo;
     std::array<Vertex, 3> vertices {
-        Vertex { .position = vec3(-0.5f, -0.5f, 0.0f), .color = vec3(0.0f, 1.0f, 0.0f) },
-        Vertex { .position = vec3( 0.0f,  0.5f, 0.0f), .color = vec3(0.0f, 0.0f, 1.0f) },
-        Vertex { .position = vec3( 0.5f, -0.5f, 0.0f), .color = vec3(1.0f, 0.0f, 0.0f) }
+        Vertex { .position = glm::vec3(-0.5f, -0.5f, 0.0f), .color = glm::vec3(0.0f, 1.0f, 0.0f) },
+        Vertex { .position = glm::vec3( 0.0f,  0.5f, 0.0f), .color = glm::vec3(0.0f, 0.0f, 1.0f) },
+        Vertex { .position = glm::vec3( 0.5f, -0.5f, 0.0f), .color = glm::vec3(1.0f, 0.0f, 0.0f) }
     };
 
     Renderer renderer;
@@ -58,48 +63,31 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         .name = "triangle",
         .stages = { ShaderStage::Vertex, ShaderStage::Fragment }
     };
+    auto compiled_shader = compile(shader);
 
-    auto compiled = compile_shader(shader);
-
-    auto vertex_shader = compile_shader(shader_path, "triangle", ShaderStage::Vertex);
-    if(!vertex_shader.has_value()) {
-        auto& error = vertex_shader.error();
-        std::visit([](auto&& error) {
-            spdlog::error("{}", error.message);
-        }, error);
+    if(!compiled_shader.has_value()) {
+        spdlog::error(compiled_shader.error().message);
     }
-
-    auto fragment_shader = compile_shader(shader_path, "triangle", ShaderStage::Fragment);
-    if(!fragment_shader.has_value()) {
-        auto& error = fragment_shader.error();
-        std::visit([](auto&& error) {
-            spdlog::error("{}", error.message);
-        }, error);
-    }
-
-    auto shader = link_shaders(vertex_shader.value(), fragment_shader.value());
-    if(!shader.has_value()) {
-        spdlog::error("{}", shader.error().message);
-    }
-    u32 shader_program = shader.value();
 
     u32 color_offset = renderer.object_index;
 
     glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ubo);
 
     glBindVertexArray(vao);
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vec3) * Settings::object_count, renderer.positions.data());
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(vec3) * Settings::object_count, sizeof(vec3) * Settings::object_count, renderer.colors.data());
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(vec3_std140) * Settings::object_count * 2, nullptr, GL_DYNAMIC_DRAW);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vec3_std140) * Settings::object_count, renderer.positions.data());
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(vec3_std140) * Settings::object_count, sizeof(vec3_std140) * Settings::object_count, renderer.colors.data());
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
 
     glEnable(GL_DEPTH_TEST);
 
-    auto draw = [vao, shader_program]() {
+    auto draw = [vao, compiled_shader]() {
         glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glBindVertexArray(vao);
-        glUseProgram(shader_program);
+        glUseProgram(compiled_shader.value());
         glDrawArrays(GL_TRIANGLES, 0, 3);
     };
 

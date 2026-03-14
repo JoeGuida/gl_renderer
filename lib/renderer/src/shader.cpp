@@ -1,5 +1,4 @@
 #include <renderer/shader.hpp>
-
 #include <format>
 #include <fstream>
 
@@ -11,16 +10,15 @@
 #include <renderer/gl_loader.hpp>
 
 std::expected<u32, ShaderError> compile(const Shader& shader) {
-    std::filesystem::path shader_path = std::filesystem::current_path() / "shaders";
     std::vector<u32> compiled;
     for(auto stage : shader.stages) {
-        auto id = compile_shader(shader.name, stage);
-        if(!id.has_value()) {
-            ShaderError error{
-                .message = std::format("ShaderError :: Error compiling shader {}", shader_path.string())
-            };
+        std::filesystem::path shader_path = get_shader_path(shader.name, stage);
 
-            return std::unexpected(error);
+        auto id = compile_shader(shader_path, stage);
+        if(!id.has_value()) {
+            if(std::holds_alternative<ShaderError>(id.error())) {
+                return std::unexpected(std::get<ShaderError>(id.error()));
+            }
         }
 
         compiled.push_back(id.value());
@@ -34,35 +32,31 @@ std::expected<u32, ShaderError> compile(const Shader& shader) {
     return shader_program.value();
 }
 
-std::string get_shader_filename(const std::string& name, ShaderStage stage) {
+/*
+    All shaders are stored at root/shaders
+    get file extension by shader stage
+*/
+std::filesystem::path get_shader_path(const std::string& name, ShaderStage stage) {
+    std::filesystem::path shader_path = std::filesystem::current_path() / "shaders";
     switch(stage) {
         case ShaderStage::Vertex: {
-            return std::format("{}.vert", name);
+            return shader_path / std::format("{}.vert", name);
         }
         case ShaderStage::Fragment: {
-            return std::format("{}.frag", name);
+            return shader_path / std::format("{}.frag", name);
         }
         default: {
-            return "";
+            return {};
         }
     }
 }
 
-std::expected<u32, std::variant<FileError, ShaderError>> compile_shader(const std::string& name, ShaderStage stage) {
-    std::string filename = get_shader_filename(name, stage);
+std::expected<u32, std::variant<FileError, ShaderError>> compile_shader(std::filesystem::path path, ShaderStage stage) {
+    std::ifstream shader_file(path);
 
-    if(filename.empty()) {
-        FileError error{
-            .message = std::format("FileError :: Error reading file {}", name)
-        };
-        return std::unexpected(error);
-    }
-
-    std::filesystem::path filepath = std::filesystem::current_path() / "shaders" / filename;
-    std::ifstream shader_file(filepath);
     if(!shader_file) {
         FileError error{
-            .message = std::format("FileError :: could not read file at {}", filepath.string())
+            .message = std::format("FileError :: could not read file at {}", path.string())
         };
         return std::unexpected(error);
     }
@@ -85,8 +79,8 @@ std::expected<u32, std::variant<FileError, ShaderError>> compile_shader(const st
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &log_length);
 		std::string log(log_length, ' ');
 		glGetShaderInfoLog(id, log_length, nullptr, &log[0]);
-
 		glDeleteShader(id);
+
         ShaderError error{
             .message = std::format("ShaderError :: shader compilation failed :: {}", log)
         };
@@ -136,11 +130,11 @@ void set_shader_uniform(u32 program, const std::string& uniform, float value) {
     glUniform1f(glGetUniformLocation(program, uniform.c_str()), value);
 }
 
-void set_shader_uniform(u32 program, const std::string& uniform, const mat4& value) {
+void set_shader_uniform(u32 program, const std::string& uniform, const glm::mat4& value) {
     glUniformMatrix4fv(glGetUniformLocation(program, uniform.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void set_shader_uniform(u32 program, const std::string& uniform, const vec3& value) {
+void set_shader_uniform(u32 program, const std::string& uniform, const glm::vec3& value) {
     glUniform3fv(glGetUniformLocation(program, uniform.c_str()), 1, glm::value_ptr(value));
 }
 

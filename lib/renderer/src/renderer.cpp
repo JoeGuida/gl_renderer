@@ -35,8 +35,7 @@ std::expected<void, std::string> initialize_opengl(PlatformWindow* handle) {
 
     HGLRC temp_context = wglCreateContext(handle->hdc);
     wglMakeCurrent(handle->hdc, temp_context);
-
-    load_gl_functions();
+    load_wglCreateContextAttribsARB();
 
     wglMakeCurrent(nullptr, nullptr);
     wglDeleteContext(temp_context);
@@ -49,6 +48,8 @@ std::expected<void, std::string> initialize_opengl(PlatformWindow* handle) {
     if(!wglMakeCurrent(handle->hdc, hglrc)) {
         return std::unexpected("failed to make gl context current");
     }
+
+    load_gl_functions();
 
     handle->hglrc = hglrc;
     return {};

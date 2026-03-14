@@ -6,6 +6,8 @@ add_executable(triangle WIN32
 
 find_package(spdlog CONFIG REQUIRED)
 
+target_compile_definitions(triangle PRIVATE DEBUG)
+
 target_link_libraries(triangle PRIVATE
     engine
     spdlog::spdlog_header_only
