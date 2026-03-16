@@ -130,11 +130,11 @@ void set_shader_uniform(u32 program, const std::string& uniform, float value) {
     glUniform1f(glGetUniformLocation(program, uniform.c_str()), value);
 }
 
-void set_shader_uniform(u32 program, const std::string& uniform, const glm::mat4& value) {
+void set_shader_uniform(u32 program, const std::string& uniform, const mat4& value) {
     glUniformMatrix4fv(glGetUniformLocation(program, uniform.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void set_shader_uniform(u32 program, const std::string& uniform, const glm::vec3& value) {
+void set_shader_uniform(u32 program, const std::string& uniform, const vec3& value) {
     glUniform3fv(glGetUniformLocation(program, uniform.c_str()), 1, glm::value_ptr(value));
 }
 

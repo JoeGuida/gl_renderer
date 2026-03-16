@@ -10,12 +10,13 @@
 #include <renderer/primitive.hpp>
 #include <renderer/renderer.hpp>
 #include <renderer/shader.hpp>
-#include <renderer/types.hpp>
+#include <renderer/uint.hpp>
+#include <renderer/vector.hpp>
 #include <renderer/vertex.hpp>
 #include <window/window.hpp>
 
-constexpr uint32_t width = 1280; 
-constexpr uint32_t height = 720;
+constexpr u32 width = 1280; 
+constexpr u32 height = 720;
 
 int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_window) {
     if(auto logger = init_logger(); !logger.has_value()) {
@@ -39,58 +40,38 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     MessageBoxA(nullptr, "Continue?", "Continue?", MB_OK);
 #endif
 
-    auto gl_initialized = initialize_opengl(window.handle.get());
-    if(!gl_initialized.has_value()) {
-        spdlog::error(gl_initialized.error());
+    Renderer renderer { .window_handle = window.handle.get() };
+    auto initialized = initialize_renderer(renderer);
+    if(!initialized.has_value()) {
+        spdlog::error(initialized.error());
     }
 
-    u32 vao;
-    u32 vbo;
-    u32 ubo;
-    std::array<Vertex, 3> vertices {
-        Vertex { .position = glm::vec3(-0.5f, -0.5f, 0.0f), .color = glm::vec3(0.0f, 1.0f, 0.0f) },
-        Vertex { .position = glm::vec3( 0.0f,  0.5f, 0.0f), .color = glm::vec3(0.0f, 0.0f, 1.0f) },
-        Vertex { .position = glm::vec3( 0.5f, -0.5f, 0.0f), .color = glm::vec3(1.0f, 0.0f, 0.0f) }
+    ObjectProperties properties {
+        .position = glm::vec3(0.0f, 0.0f, 0.0f),
+        .color    = glm::vec3(1.0f, 0.0f, 0.0f),
+        .type     = PrimitiveType::Triangle
     };
 
-    Renderer renderer;
-    add_primitive(renderer, PrimitiveType::Triangle, vertices);
+    add_primitive(properties, renderer);
 
-    std::filesystem::path shader_path = std::filesystem::current_path() / "shaders";
-
-    // compile_shader has variant error types so we need to std::visit to print all of them
     Shader shader {
         .name = "triangle",
         .stages = { ShaderStage::Vertex, ShaderStage::Fragment }
     };
+
     auto compiled_shader = compile(shader);
 
     if(!compiled_shader.has_value()) {
         spdlog::error(compiled_shader.error().message);
     }
 
-    u32 color_offset = renderer.object_index;
-
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &ubo);
-
-    glBindVertexArray(vao);
-    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(vec3_std140) * Settings::object_count * 2, nullptr, GL_DYNAMIC_DRAW);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vec3_std140) * Settings::object_count, renderer.positions.data());
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(vec3_std140) * Settings::object_count, sizeof(vec3_std140) * Settings::object_count, renderer.colors.data());
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
-
     glEnable(GL_DEPTH_TEST);
 
-    auto draw = [vao, compiled_shader]() {
-        glClearColor(0.0, 0.0, 0.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glBindVertexArray(vao);
-        glUseProgram(compiled_shader.value());
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+    setup_draw(renderer);
+    auto draw_callback = [&renderer, &compiled_shader]() {
+        draw(renderer, compiled_shader.value());
     };
 
     spdlog::info("running window");
-    run_window(window.handle.get(), draw);
+    run_window(window.handle.get(), draw_callback);
 }
