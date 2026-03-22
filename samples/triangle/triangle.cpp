@@ -49,10 +49,9 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     ObjectProperties properties {
         .position = glm::vec3(0.0f, 0.0f, 0.0f),
         .color    = glm::vec3(1.0f, 0.0f, 0.0f),
-        .type     = PrimitiveType::Triangle
     };
 
-    add_primitive(properties, renderer);
+    add_primitive(PrimitiveType::Triangle, properties, renderer);
 
     Shader shader {
         .name = "triangle",
@@ -60,7 +59,6 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     };
 
     auto compiled_shader = compile(shader);
-
     if(!compiled_shader.has_value()) {
         spdlog::error(compiled_shader.error().message);
     }

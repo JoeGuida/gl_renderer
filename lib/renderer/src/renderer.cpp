@@ -1,20 +1,40 @@
 #include <renderer/renderer.hpp>
 
+#include <array>
+
 #include <window/win32.hpp>
 
 #include <renderer/gl_loader.hpp>
+#include <renderer/primitive.hpp>
+#include <renderer/vector.hpp>
 #include <renderer/wglext.h>
 
-std::expected<void, std::string> initialize_renderer(Renderer& renderer) {
-    auto opengl = initialize_opengl(renderer.window_handle);
-    if(!opengl.has_value()) {
-        return std::unexpected(opengl.error());
+void add_primitive(PrimitiveType type, const ObjectProperties& properties, Renderer& renderer) {
+    if(type == PrimitiveType::Triangle && renderer.count.triangle < Settings::object_count) {
+        u32 index = Triangle::offset + renderer.count.triangle;
+        renderer.object_data.positions[index] = vec4(properties.position, 1.0f);
+        renderer.object_data.colors[index] = vec4(properties.color, 1.0);
+        ++renderer.count.triangle;
+        upload_ubo(renderer);
     }
 
-    glGenVertexArrays(1, &renderer.vao);
-    glGenBuffers(1, &renderer.ubo);
+    if(type == PrimitiveType::Quad && renderer.count.quad < Settings::object_count) {
+        u32 index = Quad::offset + renderer.count.quad;
+        renderer.object_data.positions[index] = vec4(properties.position, 1.0f);
+        renderer.object_data.colors[index] = vec4(properties.color, 1.0f);
+        ++renderer.count.quad;
+        upload_ubo(renderer);
+    }
+}
 
-    return {};
+void draw(Renderer& renderer, u32 shader) {
+    glClearColor(0.3, 0.3, 0.3, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindVertexArray(renderer.vao);
+    glUseProgram(shader);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 3, renderer.count.triangle);
+    glDrawElementsInstanced(GL_TRIANGLES, Quad::indices.size(), GL_UNSIGNED_INT, Quad::indices.data(), renderer.count.quad);
 }
 
 std::expected<void, std::string> initialize_opengl(PlatformWindow* handle) {
@@ -37,7 +57,7 @@ std::expected<void, std::string> initialize_opengl(PlatformWindow* handle) {
         return std::unexpected("error setting pixel format!");
     }
 
-    int attribs[] = {
+    std::array<int, 7> attribs = {
         WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
         WGL_CONTEXT_MINOR_VERSION_ARB, 6,
         WGL_CONTEXT_PROFILE_MASK_ARB,
@@ -52,7 +72,7 @@ std::expected<void, std::string> initialize_opengl(PlatformWindow* handle) {
     wglMakeCurrent(nullptr, nullptr);
     wglDeleteContext(temp_context);
 
-    HGLRC hglrc = wglCreateContextAttribsARB(handle->hdc, nullptr, attribs);
+    HGLRC hglrc = wglCreateContextAttribsARB(handle->hdc, nullptr, attribs.data());
     if(!hglrc) {
         return std::unexpected("error creating gl context");
     }
@@ -67,77 +87,37 @@ std::expected<void, std::string> initialize_opengl(PlatformWindow* handle) {
     return {};
 }
 
-void setup_draw(Renderer& renderer) {
+std::expected<void, std::string> initialize_renderer(Renderer& renderer) {
+    auto opengl = initialize_opengl(renderer.window_handle);
+    if(!opengl.has_value()) {
+        return std::unexpected(opengl.error());
+    }
+
+    glGenVertexArrays(1, &renderer.vao);
+    glGenBuffers(1, &renderer.vbo);
+    glGenBuffers(1, &renderer.ubo);
+
     glBindVertexArray(renderer.vao);
     glBindBuffer(GL_UNIFORM_BUFFER, renderer.ubo);
     glBufferData(GL_UNIFORM_BUFFER, Settings::buffer_size * Settings::buffer_count, nullptr, GL_DYNAMIC_DRAW);
 
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, Settings::buffer_size, renderer.triangle_data.positions.data());
-    glBufferSubData(GL_UNIFORM_BUFFER, Settings::buffer_size, Settings::buffer_size, renderer.triangle_data.colors.data());
-    glBufferSubData(GL_UNIFORM_BUFFER, Settings::buffer_size * 2, Settings::buffer_size, renderer.quad_data.positions.data());
-    glBufferSubData(GL_UNIFORM_BUFFER, Settings::buffer_size * 3, Settings::buffer_size, renderer.quad_data.colors.data());
-
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, renderer.ubo);
+    return {};
 }
 
-void draw(Renderer& renderer, u32 shader) {
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+void setup_draw(Renderer& renderer) {
     glBindVertexArray(renderer.vao);
-    glUseProgram(shader);
-    glDrawElementsInstanced(GL_TRIANGLES, renderer.triangle_data.indices.size(), GL_UNSIGNED_INT, renderer.triangle_data.indices.data(), renderer.indices.triangle);
-    glDrawElementsInstanced(GL_TRIANGLES, renderer.quad_data.indices.size(), GL_UNSIGNED_INT, renderer.quad_data.indices.data(), renderer.indices.quad);
+
+    glBindBuffer(GL_ARRAY_BUFFER, renderer.vbo);
+    glBufferData(GL_ARRAY_BUFFER, Triangle::vertex_count * sizeof(Vertex), Triangle::vertices.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    upload_ubo(renderer);
 }
 
-void add_primitive(const ObjectProperties& properties, Renderer& renderer) {
-    switch(properties.type) {
-        case PrimitiveType::Triangle: {
-            if(can_add(properties.type, renderer)) {
-                renderer.triangle_data.positions[renderer.indices.triangle] = properties.position;
-                renderer.triangle_data.colors[renderer.indices.triangle] = properties.color;
-
-                u32 start = renderer.indices.triangle * 3;
-                std::array<u32, 3> indices { 0, 1, 2 };
-                for(int i = 0; i < indices.size(); i++) {
-                    renderer.triangle_data.indices[start + i] = start + i;
-                }
-
-                renderer.indices.triangle++;
-            }
-            break;
-        }
-        case PrimitiveType::Quad: {
-            if(can_add(properties.type, renderer)) {
-                renderer.quad_data.positions[renderer.indices.quad] = properties.position;
-                renderer.quad_data.colors[renderer.indices.quad] = properties.color;
-
-                u32 start = renderer.indices.quad * 6;
-                std::array<u32, 6> indices { 0, 1, 2, 2, 3, 0 };
-                for(int i = 0; i < indices.size(); i++) {
-                    renderer.quad_data.indices[start + i] = start + i;
-                }
-
-                renderer.indices.quad++;
-            }
-            break;
-        }
-        default: {
-            return;
-        }
-    }
-}
-
-bool can_add(PrimitiveType type, const Renderer& renderer) {
-    switch(type) {
-        case PrimitiveType::Triangle: {
-            return renderer.indices.triangle < Settings::object_count;
-        }
-        case PrimitiveType::Quad: {
-            return renderer.indices.quad < Settings::object_count;
-        }
-        default: {
-            return false;
-        }
-    }
+void upload_ubo(Renderer& renderer) {
+    glBindBuffer(GL_UNIFORM_BUFFER, renderer.ubo);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, Settings::buffer_size, renderer.object_data.positions.data());
+    glBufferSubData(GL_UNIFORM_BUFFER, Settings::buffer_size, Settings::buffer_size, renderer.object_data.colors.data());
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, renderer.ubo);
 }

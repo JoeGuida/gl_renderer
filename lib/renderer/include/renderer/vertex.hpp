@@ -5,7 +5,6 @@
 
 struct Vertex {
     vec3 position;
-    vec3 color;
 };
 
 #endif

@@ -5,12 +5,11 @@
 #include <renderer/uint.hpp>
 
 struct Settings {
-    static constexpr u32 object_count = 256;
-    static constexpr u32 max_vertex_count_per_primitive = 4;
-    static constexpr u32 max_index_count_per_primitive = 6;
-    static constexpr u32 index_count = max_index_count_per_primitive * object_count;
-    static constexpr u32 buffer_size = sizeof(vec3_std140) * object_count;
-    static constexpr u32 buffer_count = 4;
+    static constexpr u32 primitive_count = 2;
+    static constexpr u32 object_count = 64;
+    static constexpr u32 buffer_size = object_count * sizeof(vec4);
+    static constexpr u32 buffer_count = primitive_count;
+    static constexpr u32 total_object_count = object_count * primitive_count;
 };
 
 #endif
