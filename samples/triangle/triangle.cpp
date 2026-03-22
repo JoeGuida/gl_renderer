@@ -48,7 +48,9 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
 
     ObjectProperties properties {
         .position = glm::vec3(0.0f, 0.0f, 0.0f),
-        .color    = glm::vec3(1.0f, 0.0f, 0.0f),
+        .material = {
+            .color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+        }
     };
 
     add_primitive(PrimitiveType::Triangle, properties, renderer);

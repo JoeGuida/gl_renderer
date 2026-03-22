@@ -20,6 +20,7 @@ struct Renderer {
     PlatformWindow* window_handle;
     ObjectData object_data;
     Count count;
+
     u32 vao;
     u32 vbo;
     u32 ubo;

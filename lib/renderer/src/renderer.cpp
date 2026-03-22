@@ -4,6 +4,7 @@
 
 #include <window/win32.hpp>
 
+#include <renderer/convert.hpp>
 #include <renderer/gl_loader.hpp>
 #include <renderer/primitive.hpp>
 #include <renderer/vector.hpp>
@@ -12,16 +13,16 @@
 void add_primitive(PrimitiveType type, const ObjectProperties& properties, Renderer& renderer) {
     if(type == PrimitiveType::Triangle && renderer.count.triangle < Settings::object_count) {
         u32 index = Triangle::offset + renderer.count.triangle;
-        renderer.object_data.positions[index] = vec4(properties.position, 1.0f);
-        renderer.object_data.colors[index] = vec4(properties.color, 1.0);
+        renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
+        renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
         ++renderer.count.triangle;
         upload_ubo(renderer);
     }
 
     if(type == PrimitiveType::Quad && renderer.count.quad < Settings::object_count) {
         u32 index = Quad::offset + renderer.count.quad;
-        renderer.object_data.positions[index] = vec4(properties.position, 1.0f);
-        renderer.object_data.colors[index] = vec4(properties.color, 1.0f);
+        renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
+        renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
         ++renderer.count.quad;
         upload_ubo(renderer);
     }
