@@ -7,8 +7,10 @@
 #include <renderer/convert.hpp>
 #include <renderer/gl_loader.hpp>
 #include <renderer/primitive.hpp>
+#include <renderer/shader.hpp>
 #include <renderer/vector.hpp>
 #include <renderer/wglext.h>
+#include <spdlog/spdlog.h>
 
 void add_primitive(PrimitiveType type, const ObjectProperties& properties, Renderer& renderer) {
     if(type == PrimitiveType::Triangle && renderer.count.triangle < Settings::object_count) {
@@ -16,7 +18,6 @@ void add_primitive(PrimitiveType type, const ObjectProperties& properties, Rende
         renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
         renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
         ++renderer.count.triangle;
-        upload_ubo(renderer);
     }
 
     if(type == PrimitiveType::Quad && renderer.count.quad < Settings::object_count) {
@@ -24,8 +25,9 @@ void add_primitive(PrimitiveType type, const ObjectProperties& properties, Rende
         renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
         renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
         ++renderer.count.quad;
-        upload_ubo(renderer);
     }
+
+    upload_ubo(renderer);
 }
 
 void draw(Renderer& renderer, u32 shader) {
@@ -34,8 +36,10 @@ void draw(Renderer& renderer, u32 shader) {
 
     glBindVertexArray(renderer.vao);
     glUseProgram(shader);
+    set_shader_uniform(shader, "offset", Triangle::offset);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 3, renderer.count.triangle);
-    glDrawElementsInstanced(GL_TRIANGLES, Quad::indices.size(), GL_UNSIGNED_INT, Quad::indices.data(), renderer.count.quad);
+    set_shader_uniform(shader, "offset", Quad::offset);
+    glDrawElementsInstanced(GL_TRIANGLES, Quad::indices.size(), GL_UNSIGNED_INT, 0, renderer.count.quad);
 }
 
 std::expected<void, std::string> initialize_opengl(PlatformWindow* handle) {
@@ -89,36 +93,36 @@ std::expected<void, std::string> initialize_opengl(PlatformWindow* handle) {
 }
 
 std::expected<void, std::string> initialize_renderer(Renderer& renderer) {
-    auto opengl = initialize_opengl(renderer.window_handle);
-    if(!opengl.has_value()) {
+    if(auto opengl = initialize_opengl(renderer.window_handle); !opengl.has_value()) {
         return std::unexpected(opengl.error());
     }
 
     glGenVertexArrays(1, &renderer.vao);
     glGenBuffers(1, &renderer.vbo);
+    glGenBuffers(1, &renderer.ebo);
     glGenBuffers(1, &renderer.ubo);
 
     glBindVertexArray(renderer.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, renderer.vbo);
+    glBufferData(GL_ARRAY_BUFFER, Unified::vertex_count * sizeof(Vertex), Unified::vertices.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer.ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, Quad::index_count * sizeof(u32), Quad::indices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, renderer.ubo);
-    glBufferData(GL_UNIFORM_BUFFER, Settings::buffer_size * Settings::buffer_count, nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * renderer.object_data.positions.size() + sizeof(vec4) * renderer.object_data.colors.size(), nullptr, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    glEnableVertexAttribArray(0);
 
     return {};
 }
 
 void setup_draw(Renderer& renderer) {
-    glBindVertexArray(renderer.vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, renderer.vbo);
-    glBufferData(GL_ARRAY_BUFFER, Triangle::vertex_count * sizeof(Vertex), Triangle::vertices.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    glEnableVertexAttribArray(0);
-
     upload_ubo(renderer);
 }
 
 void upload_ubo(Renderer& renderer) {
     glBindBuffer(GL_UNIFORM_BUFFER, renderer.ubo);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, Settings::buffer_size, renderer.object_data.positions.data());
-    glBufferSubData(GL_UNIFORM_BUFFER, Settings::buffer_size, Settings::buffer_size, renderer.object_data.colors.data());
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vec4) * renderer.object_data.positions.size(), renderer.object_data.positions.data());
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(vec4) * renderer.object_data.positions.size(), sizeof(vec4) * renderer.object_data.colors.size(), renderer.object_data.colors.data());
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, renderer.ubo);
 }

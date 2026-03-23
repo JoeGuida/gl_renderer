@@ -10,7 +10,7 @@
 #include <renderer/uint.hpp>
 #include <window/window.hpp>
 
-constexpr u32 width = 1280; 
+constexpr u32 width = 1280;
 constexpr u32 height = 720;
 
 int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_window) {
@@ -19,7 +19,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     }
 
     // initialize a win32 window
-    auto window_handle = initialize_window(instance, show_window, width, height, L"window class", L"Triangle");
+    auto window_handle = initialize_window(instance, show_window, width, height, L"window class", L"Quad");
     if(!window_handle.has_value()) {
         spdlog::error(window_handle.error());
     }
@@ -48,7 +48,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         }
     };
 
-    add_primitive(PrimitiveType::Triangle, properties, renderer);
+    add_primitive(PrimitiveType::Quad, properties, renderer);
 
     Shader shader {
         .name = "flat_shading",

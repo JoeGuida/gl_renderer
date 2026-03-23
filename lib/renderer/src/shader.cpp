@@ -126,6 +126,10 @@ std::expected<u32, ShaderError> link_shaders(const std::vector<u32> compiled) {
 	return program;
 }
 
+void set_shader_uniform(u32 program, const std::string& uniform, u32 value) {
+    glUniform1ui(glGetUniformLocation(program, uniform.c_str()), value);
+}
+
 void set_shader_uniform(u32 program, const std::string& uniform, float value) {
     glUniform1f(glGetUniformLocation(program, uniform.c_str()), value);
 }

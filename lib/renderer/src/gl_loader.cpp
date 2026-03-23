@@ -26,6 +26,7 @@ PFNGLGETUNIFORMLOCATIONPROC       glGetUniformLocation       = nullptr;
 PFNGLLINKPROGRAMPROC              glLinkProgram              = nullptr;
 PFNGLSHADERSOURCEPROC             glShaderSource             = nullptr;
 PFNGLUNIFORM1FPROC                glUniform1f                = nullptr;
+PFNGLUNIFORM1UIPROC               glUniform1ui               = nullptr;
 PFNGLUNIFORM3FVPROC               glUniform3fv               = nullptr;
 PFNGLUNIFORMMATRIX4FVPROC         glUniformMatrix4fv         = nullptr;
 PFNGLUSEPROGRAMPROC               glUseProgram               = nullptr;
@@ -61,6 +62,7 @@ void load_gl_functions() {
     glLinkProgram              = (PFNGLLINKPROGRAMPROC)wglGetProcAddress("glLinkProgram");
     glShaderSource             = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
     glUniform1f                = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f");
+    glUniform1ui               = (PFNGLUNIFORM1UIPROC)wglGetProcAddress("glUniform1ui");
     glUniform3fv               = (PFNGLUNIFORM3FVPROC)wglGetProcAddress("glUniform3fv");
     glUniformMatrix4fv         = (PFNGLUNIFORMMATRIX4FVPROC)wglGetProcAddress("glUniformMatrix4fv");
     glUseProgram               = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
