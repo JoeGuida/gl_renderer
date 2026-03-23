@@ -56,7 +56,7 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpar
     return DefWindowProc(hwnd, message, wparam, lparam);
 }
 
-std::expected<std::unique_ptr<PlatformWindow>, std::string> initialize_window(HINSTANCE instance, int show_window_flags, uint32_t width, uint32_t height, const wchar_t* class_name, const wchar_t* window_title) {
+std::expected<Window, std::string> initialize_window(HINSTANCE instance, int show_window_flags, uint32_t width, uint32_t height, const wchar_t* class_name, const wchar_t* window_title) {
     WNDCLASSEX window_class {
         .cbSize = sizeof(WNDCLASSEX),
         .style = CS_HREDRAW | CS_VREDRAW,
@@ -96,5 +96,9 @@ std::expected<std::unique_ptr<PlatformWindow>, std::string> initialize_window(HI
     handle->hwnd = hwnd;
     handle->hdc = hdc;
 
-    return handle;
+    return Window {
+        .width = width,
+        .height = height,
+        .handle = std::move(handle)
+    };
 }

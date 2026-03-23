@@ -10,25 +10,21 @@
 #include <renderer/uint.hpp>
 #include <window/window.hpp>
 
-constexpr u32 width = 1280;
+constexpr u32 width = 1280; 
 constexpr u32 height = 720;
 
 int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_window) {
     if(auto logger = init_logger(); !logger.has_value()) {
         std::println("could not initialize logger");
+        return EXIT_FAILURE;
     }
 
-    // initialize a win32 window
-    auto window_handle = initialize_window(instance, show_window, width, height, L"window class", L"Quad");
-    if(!window_handle.has_value()) {
-        spdlog::error(window_handle.error());
+    auto init_window = initialize_window(instance, show_window, width, height, L"window class", L"Quad");
+    if(!init_window.has_value()) {
+        spdlog::error(init_window.error());
+        return EXIT_FAILURE;
     }
-
-    Window window {
-        .width = width,
-        .height = height,
-        .handle = std::move(window_handle.value())
-    };
+    Window& window = init_window.value();
 
 #ifdef DEBUG
     // sometimes tools like RenderDoc need to be attached to the process before opengl is initialized
@@ -39,6 +35,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     auto initialized = initialize_renderer(renderer);
     if(!initialized.has_value()) {
         spdlog::error(initialized.error());
+        return EXIT_FAILURE;
     }
 
     ObjectProperties properties {
@@ -55,16 +52,20 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         .stages = { ShaderStage::Vertex, ShaderStage::Fragment }
     };
 
-    auto compiled_shader = compile(shader);
-    if(!compiled_shader.has_value()) {
-        spdlog::error(compiled_shader.error().message);
+    auto result = add_shader(renderer, shader);
+    if(!result.has_value()) {
+        spdlog::error(result.error().message);
+        return EXIT_FAILURE;
     }
 
+    u32& id = result.value();
     setup_draw(renderer);
-    auto draw_callback = [&renderer, &compiled_shader]() {
-        draw(renderer, compiled_shader.value());
+    auto draw_callback = [&renderer, &id]() {
+        draw(renderer, id);
     };
 
     spdlog::info("running window");
     run_window(window.handle.get(), draw_callback);
+
+    return EXIT_SUCCESS;
 }
