@@ -52,16 +52,15 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         .stages = { ShaderStage::Vertex, ShaderStage::Fragment }
     };
 
-    auto result = add_shader(renderer, shader);
-    if(!result.has_value()) {
-        spdlog::error(result.error().message);
+    auto compiled_shader = compile(shader);
+    if(!compiled_shader.has_value()) {
+        spdlog::error(compiled_shader.error().message);
         return EXIT_FAILURE;
     }
 
-    u32& id = result.value();
     setup_draw(renderer);
-    auto draw_callback = [&renderer, &id]() {
-        draw(renderer, id);
+    auto draw_callback = [&renderer, &compiled_shader]() {
+        draw(renderer, compiled_shader.value());
     };
 
     spdlog::info("running window");

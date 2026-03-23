@@ -1,7 +1,7 @@
 #version 460 core
 
 const uint N = 64; // Settings::object_count
-const uint P = 2; // Settings::primitive_count
+const uint P = 3; // Settings::primitive_count
 
 layout (location = 0) in vec3 pos;
 

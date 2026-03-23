@@ -27,6 +27,13 @@ void add_primitive(PrimitiveType type, const ObjectProperties& properties, Rende
         ++renderer.count.quad;
     }
 
+    if(type == PrimitiveType::Cube && renderer.count.cube < Settings::object_count) {
+        u32 index = Cube::offset + renderer.count.cube;
+        renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
+        renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
+        ++renderer.count.cube;
+    }
+
     upload_ubo(renderer);
 }
 
@@ -35,11 +42,14 @@ void draw(Renderer& renderer, u32 shader) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glBindVertexArray(renderer.vao);
+    glBindBuffer(GL_UNIFORM_BUFFER, renderer.ubo);
     glUseProgram(shader);
     set_shader_uniform(shader, "offset", Triangle::offset);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 3, renderer.count.triangle);
     set_shader_uniform(shader, "offset", Quad::offset);
-    glDrawElementsInstanced(GL_TRIANGLES, Quad::indices.size(), GL_UNSIGNED_INT, 0, renderer.count.quad);
+    glDrawElementsInstanced(GL_TRIANGLES, Quad::index_count, GL_UNSIGNED_INT, 0, renderer.count.quad);
+    set_shader_uniform(shader, "offset", Cube::offset);
+    glDrawElementsInstanced(GL_TRIANGLES, Cube::index_count, GL_UNSIGNED_INT, (void*)(Quad::index_count * sizeof(u32)), renderer.count.cube);
 }
 
 std::expected<void, std::string> initialize_opengl(PlatformWindow* handle) {
@@ -106,7 +116,7 @@ std::expected<void, std::string> initialize_renderer(Renderer& renderer) {
     glBindBuffer(GL_ARRAY_BUFFER, renderer.vbo);
     glBufferData(GL_ARRAY_BUFFER, Unified::vertex_count * sizeof(Vertex), Unified::vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer.ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, Quad::index_count * sizeof(u32), Quad::indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, Unified::index_count * sizeof(u32), Unified::indices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, renderer.ubo);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * renderer.object_data.positions.size() + sizeof(vec4) * renderer.object_data.colors.size(), nullptr, GL_DYNAMIC_DRAW);
 

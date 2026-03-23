@@ -14,6 +14,7 @@
 struct Count {
     u32 triangle = 0;
     u32 quad = 0;
+    u32 cube = 0;
 };
 
 struct Renderer {

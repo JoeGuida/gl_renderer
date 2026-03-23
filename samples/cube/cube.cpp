@@ -19,7 +19,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         return EXIT_FAILURE;
     }
 
-    auto init_window = initialize_window(instance, show_window, width, height, L"window class", L"Triangle");
+    auto init_window = initialize_window(instance, show_window, width, height, L"window class", L"Cube");
     if(!init_window.has_value()) {
         spdlog::error(init_window.error());
         return EXIT_FAILURE;
@@ -45,7 +45,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         }
     };
 
-    add_primitive(PrimitiveType::Triangle, properties, renderer);
+    add_primitive(PrimitiveType::Cube, properties, renderer);
 
     Shader shader {
         .name = "flat_shading",
