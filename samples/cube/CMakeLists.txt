@@ -6,7 +6,9 @@ add_executable(cube WIN32
     cube.cpp
 )
 
-target_compile_definitions(cube PRIVATE DEBUG)
+target_compile_definitions(cube PRIVATE
+    $<$<CONFIG:Debug>:DEBUG>
+)
 
 target_link_libraries(cube PRIVATE
     engine

@@ -6,7 +6,9 @@ add_executable(triangle WIN32
     triangle.cpp
 )
 
-target_compile_definitions(triangle PRIVATE DEBUG)
+target_compile_definitions(triangle PRIVATE
+    $<$<CONFIG:Debug>:DEBUG>
+)
 
 target_link_libraries(triangle PRIVATE
     engine

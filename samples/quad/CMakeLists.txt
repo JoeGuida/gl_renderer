@@ -6,7 +6,9 @@ add_executable(quad WIN32
     quad.cpp
 )
 
-target_compile_definitions(quad PRIVATE DEBUG)
+target_compile_definitions(quad PRIVATE
+    $<$<CONFIG:Debug>:DEBUG>
+)
 
 target_link_libraries(quad PRIVATE
     engine
