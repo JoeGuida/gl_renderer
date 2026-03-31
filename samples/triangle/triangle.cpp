@@ -14,6 +14,11 @@ constexpr u32 width = 1280;
 constexpr u32 height = 720;
 
 int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_window) {
+#ifdef DEBUG
+    // sometimes tools like RenderDoc need to be attached to the process before opengl is initialized
+    MessageBoxA(nullptr, "Continue?", "Continue?", MB_OK);
+#endif
+
     if(auto logger = init_logger(); !logger.has_value()) {
         std::println("could not initialize logger");
         return EXIT_FAILURE;
@@ -25,11 +30,6 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         return EXIT_FAILURE;
     }
     Window& window = init_window.value();
-
-#ifdef DEBUG
-    // sometimes tools like RenderDoc need to be attached to the process before opengl is initialized
-    MessageBoxA(nullptr, "Continue?", "Continue?", MB_OK);
-#endif
 
     Renderer renderer { .window_handle = window.handle.get() };
     auto initialized = initialize_renderer(renderer);
@@ -48,11 +48,11 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     add_primitive(PrimitiveType::Triangle, properties, renderer);
 
     Shader shader {
-        .name = "flat_shading",
+        .name = "triangle",
         .stages = { ShaderStage::Vertex, ShaderStage::Fragment }
     };
 
-    auto compiled_shader = compile(shader);
+    auto compiled_shader = compile(shader, std::filesystem::current_path() / "samples" / "triangle");
     if(!compiled_shader.has_value()) {
         spdlog::error(compiled_shader.error().message);
         return EXIT_FAILURE;

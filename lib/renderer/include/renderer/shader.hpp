@@ -2,6 +2,7 @@
 #define RENDERER_SHADER_HPP
 
 #include <expected>
+#include <filesystem>
 #include <string>
 #include <variant>
 
@@ -24,7 +25,9 @@ struct Shader {
 };
 
 std::expected<u32, ShaderError> compile(const Shader& shader);
+std::expected<u32, ShaderError> compile(const Shader& shader, std::filesystem::path root_path);
 std::filesystem::path get_shader_path(const std::string& name, ShaderStage stage);
+std::filesystem::path get_shader_path(const std::string& name, ShaderStage stage, std::filesystem::path root_path);
 std::expected<u32, std::variant<FileError, ShaderError>> compile_shader(std::filesystem::path path, ShaderStage stage);
 std::expected<u32, ShaderError> link_shaders(const std::vector<u32> compiled);
 void set_shader_uniform(u32 program, const std::string& uniform, u32 value);

@@ -1,11 +1,12 @@
 #ifndef RENDERER_GL_LOADER_HPP
 #define RENDERER_GL_LOADER_HPP
 
-#include <Windows.h>
+#include <window/win32.hpp>
 #include <GL/gl.h>
 
 #include <renderer/glcorearb.h>
 #include <renderer/wglext.h>
+
 
 extern PFNGLATTACHSHADERPROC             glAttachShader;
 extern PFNGLBINDBUFFERPROC               glBindBuffer;

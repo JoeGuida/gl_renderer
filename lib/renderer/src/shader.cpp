@@ -32,12 +32,50 @@ std::expected<u32, ShaderError> compile(const Shader& shader) {
     return shader_program.value();
 }
 
+std::expected<u32, ShaderError> compile(const Shader& shader, std::filesystem::path root_path) {
+    std::vector<u32> compiled;
+    for(auto stage : shader.stages) {
+        std::filesystem::path shader_path = get_shader_path(shader.name, stage, root_path);
+
+        auto id = compile_shader(shader_path, stage);
+        if(!id.has_value()) {
+            if(std::holds_alternative<ShaderError>(id.error())) {
+                return std::unexpected(std::get<ShaderError>(id.error()));
+            }
+        }
+
+        compiled.push_back(id.value());
+    }
+
+    auto shader_program = link_shaders(compiled);
+    if(!shader_program.has_value()) {
+        return std::unexpected(shader_program.error());
+    }
+
+    return shader_program.value();
+}
+
 /*
     All shaders are stored at root/shaders
     get file extension by shader stage
 */
 std::filesystem::path get_shader_path(const std::string& name, ShaderStage stage) {
     std::filesystem::path shader_path = std::filesystem::current_path() / "shaders";
+    switch(stage) {
+        case ShaderStage::Vertex: {
+            return shader_path / std::format("{}.vert", name);
+        }
+        case ShaderStage::Fragment: {
+            return shader_path / std::format("{}.frag", name);
+        }
+        default: {
+            return {};
+        }
+    }
+}
+
+std::filesystem::path get_shader_path(const std::string& name, ShaderStage stage, std::filesystem::path root_path) {
+    std::filesystem::path shader_path = root_path / "shaders";
     switch(stage) {
         case ShaderStage::Vertex: {
             return shader_path / std::format("{}.vert", name);

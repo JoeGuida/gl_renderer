@@ -8,7 +8,6 @@
 
 struct Material {
     vec4 color;
-    vec3 normal;
 
     std::optional<Texture> color_map;
 };

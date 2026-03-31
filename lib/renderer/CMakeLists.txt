@@ -13,6 +13,7 @@ add_library(renderer STATIC
     src/logger.cpp
     src/renderer.cpp
     src/shader.cpp
+    src/transform.cpp
 )
 
 target_include_directories(renderer PUBLIC
