@@ -8,7 +8,7 @@
 #include <renderer/vector.hpp>
 #include <renderer/vertex.hpp>
 
-enum class PrimitiveType : u32 {
+enum class Primitive : u32 {
     Triangle,
     Quad,
     Cube

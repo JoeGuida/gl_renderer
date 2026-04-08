@@ -45,7 +45,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         }
     };
 
-    add_primitive(PrimitiveType::Quad, properties, renderer);
+    add_primitive(Primitive::Quad, properties, renderer);
 
     Shader shader {
         .name = "quad",

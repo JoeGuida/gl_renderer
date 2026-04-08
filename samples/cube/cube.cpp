@@ -45,7 +45,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         }
     };
 
-    add_primitive(PrimitiveType::Cube, properties, renderer);
+    add_primitive(Primitive::Cube, properties, renderer);
 
     Shader shader {
         .name = "cube",

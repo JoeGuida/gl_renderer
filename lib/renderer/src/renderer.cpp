@@ -12,22 +12,22 @@
 #include <renderer/wglext.h>
 #include <spdlog/spdlog.h>
 
-void add_primitive(PrimitiveType type, const ObjectProperties& properties, Renderer& renderer) {
-    if(type == PrimitiveType::Triangle && renderer.count.triangle < Settings::object_count) {
+void add_primitive(Primitive primitive, const ObjectProperties& properties, Renderer& renderer) {
+    if(primitive == Primitive::Triangle && renderer.count.triangle < Settings::object_count) {
         u32 index = Triangle::offset + renderer.count.triangle;
         renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
         renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
         ++renderer.count.triangle;
     }
 
-    if(type == PrimitiveType::Quad && renderer.count.quad < Settings::object_count) {
+    if(primitive == Primitive::Quad && renderer.count.quad < Settings::object_count) {
         u32 index = Quad::offset + renderer.count.quad;
         renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
         renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
         ++renderer.count.quad;
     }
 
-    if(type == PrimitiveType::Cube && renderer.count.cube < Settings::object_count) {
+    if(primitive == Primitive::Cube && renderer.count.cube < Settings::object_count) {
         u32 index = Cube::offset + renderer.count.cube;
         renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
         renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);

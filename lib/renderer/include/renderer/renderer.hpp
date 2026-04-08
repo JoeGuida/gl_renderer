@@ -28,7 +28,7 @@ struct Renderer {
     u32 ubo;
 };
 
-void add_primitive(PrimitiveType type, const ObjectProperties& properties, Renderer& renderer);
+void add_primitive(Primitive primitive, const ObjectProperties& properties, Renderer& renderer);
 void draw(Renderer& renderer, u32 shader);
 std::expected<void, std::string> initialize_opengl(PlatformWindow* handle);
 std::expected<void, std::string> initialize_renderer(Renderer& renderer);

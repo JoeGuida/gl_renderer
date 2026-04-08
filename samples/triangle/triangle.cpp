@@ -45,7 +45,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         }
     };
 
-    add_primitive(PrimitiveType::Triangle, properties, renderer);
+    add_primitive(Primitive::Triangle, properties, renderer);
 
     Shader shader {
         .name = "triangle",
