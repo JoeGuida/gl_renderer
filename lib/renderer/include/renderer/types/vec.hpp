@@ -1,5 +1,5 @@
-#ifndef RENDERER_VECTOR_HPP
-#define RENDERER_VECTOR_HPP
+#ifndef RENDERER_TYPES_VEC_HPP
+#define RENDERER_TYPES_VEC_HPP
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>

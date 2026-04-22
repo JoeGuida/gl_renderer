@@ -1,12 +1,12 @@
-#ifndef RENDERER_PRIMITIVE_HPP
-#define RENDERER_PRIMITIVE_HPP
+#ifndef RENDERER_OBJECT_PRIMITIVE_HPP
+#define RENDERER_OBJECT_PRIMITIVE_HPP
 
 #include <array>
 
-#include <renderer/settings.hpp>
-#include <renderer/uint.hpp>
-#include <renderer/vector.hpp>
-#include <renderer/vertex.hpp>
+#include "renderer/core/vertex.hpp"
+#include "renderer/settings/renderer_settings.hpp"
+#include "renderer/types/uint.hpp"
+#include "renderer/types/vec.hpp"
 
 enum class Primitive : u32 {
     Triangle,
@@ -29,7 +29,7 @@ struct Triangle {
 struct Quad {
     static constexpr u32 vertex_count = 4;
     static constexpr u32 index_count = 6;
-    static constexpr u32 offset = Settings::object_count;
+    static constexpr u32 offset = RendererSettings::object_count;
     static constexpr u32 vertex_offset = Triangle::vertex_count;
 
     static constexpr std::array<Vertex, vertex_count> vertices {
@@ -48,7 +48,7 @@ struct Quad {
 struct Cube {
     static constexpr u32 vertex_count = 24;
     static constexpr u32 index_count = 36;
-    static constexpr u32 offset = Settings::object_count * 2;
+    static constexpr u32 offset = RendererSettings::object_count * 2;
     static constexpr u32 vertex_offset = Triangle::vertex_count + Quad::vertex_count;
 
     static constexpr std::array<Vertex, vertex_count> vertices {

@@ -2,16 +2,14 @@
 
 #include <spdlog/spdlog.h>
 
-#include <renderer/gl_loader.hpp>
-#include <renderer/logger.hpp>
-#include <renderer/primitive.hpp>
-#include <renderer/renderer.hpp>
-#include <renderer/shader.hpp>
-#include <renderer/uint.hpp>
 #include <window/window.hpp>
 
-constexpr u32 width = 1280; 
-constexpr u32 height = 720;
+#include "renderer/api/gl_loader.hpp"
+#include "renderer/core/logger.hpp"
+#include "renderer/core/renderer.hpp"
+#include "renderer/core/shader.hpp"
+#include "renderer/object/primitive.hpp"
+#include "renderer/types/uint.hpp"
 
 int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_window) {
 #ifdef DEBUG
@@ -19,24 +17,21 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     MessageBoxA(nullptr, "Continue?", "Continue?", MB_OK);
 #endif
 
-    if(auto logger = init_logger(); !logger.has_value()) {
-        std::println("could not initialize logger");
-        return EXIT_FAILURE;
-    }
+    // Renderer / Window Setup ---------------------------------------------------------------------
 
-    auto init_window = initialize_window(instance, show_window, width, height, L"window class", L"Cube");
-    if(!init_window.has_value()) {
-        spdlog::error(init_window.error());
-        return EXIT_FAILURE;
-    }
-    Window& window = init_window.value();
+    exit_on_error(init_logger());
+
+    SceneSettings settings {
+        .width = 1280,
+        .height = 720
+    };
+
+    auto window = exit_on_error(initialize_window(instance, show_window, settings.width, settings.height, L"window class", L"Cube"));
 
     Renderer renderer { .window_handle = window.handle.get() };
-    auto initialized = initialize_renderer(renderer);
-    if(!initialized.has_value()) {
-        spdlog::error(initialized.error());
-        return EXIT_FAILURE;
-    }
+    exit_on_error(initialize_renderer(renderer));
+
+    // Object Setup --------------------------------------------------------------------------------
 
     ObjectProperties properties {
         .position = glm::vec3(0.0f, 0.0f, 0.0f),
@@ -46,6 +41,8 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     };
 
     add_primitive(Primitive::Cube, properties, renderer);
+
+    // Shader Setup --------------------------------------------------------------------------------
 
     Shader shader {
         .name = "cube",
@@ -59,6 +56,9 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     }
 
     setup_draw(renderer);
+
+    // Main Loop -----------------------------------------------------------------------------------
+
     auto draw_callback = [&renderer, &compiled_shader]() {
         draw(renderer, compiled_shader.value());
     };

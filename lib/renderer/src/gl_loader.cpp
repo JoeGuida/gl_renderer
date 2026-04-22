@@ -1,4 +1,4 @@
-#include <renderer/gl_loader.hpp>
+#include "renderer/api/gl_loader.hpp"
 
 PFNGLATTACHSHADERPROC             glAttachShader             = nullptr;
 PFNGLBINDBUFFERPROC               glBindBuffer               = nullptr;

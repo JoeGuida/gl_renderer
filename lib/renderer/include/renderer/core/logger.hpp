@@ -1,5 +1,5 @@
-#ifndef RENDERER_LOGGER_HPP
-#define RENDERER_LOGGER_HPP
+#ifndef RENDERER_CORE_LOGGER_HPP
+#define RENDERER_CORE_LOGGER_HPP
 
 #include <expected>
 #include <string>

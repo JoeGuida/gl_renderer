@@ -1,13 +1,14 @@
-#include <renderer/shader.hpp>
+#include "renderer/core/shader.hpp"
+
 #include <format>
 #include <fstream>
 
 #include <glm/gtc/type_ptr.hpp>
 #include <spdlog/spdlog.h>
 
-#include <renderer/convert.hpp>
-#include <renderer/file.hpp>
-#include <renderer/gl_loader.hpp>
+#include "renderer/api/gl_loader.hpp"
+#include "renderer/scene/file.hpp"
+#include "renderer/util/convert.hpp"
 
 std::expected<u32, ShaderError> compile(const Shader& shader) {
     std::vector<u32> compiled;
@@ -168,7 +169,7 @@ void set_shader_uniform(u32 program, const std::string& uniform, u32 value) {
     glUniform1ui(glGetUniformLocation(program, uniform.c_str()), value);
 }
 
-void set_shader_uniform(u32 program, const std::string& uniform, float value) {
+void set_shader_uniform(u32 program, const std::string& uniform, f32 value) {
     glUniform1f(glGetUniformLocation(program, uniform.c_str()), value);
 }
 

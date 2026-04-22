@@ -1,15 +1,15 @@
-#ifndef RENDERER_RENDERER_HPP
-#define RENDERER_RENDERER_HPP
+#ifndef RENDERER_CORE_RENDERER_HPP
+#define RENDERER_CORE_RENDERER_HPP
 
 #include <expected>
 #include <string>
 
 #include <window/window.hpp>
 
-#include <renderer/object_data.hpp>
-#include <renderer/object_properties.hpp>
-#include <renderer/primitive.hpp>
-#include <renderer/uint.hpp>
+#include "renderer/object/object_data.hpp"
+#include "renderer/object/object_properties.hpp"
+#include "renderer/object/primitive.hpp"
+#include "renderer/types/uint.hpp"
 
 struct Count {
     u32 triangle = 0;

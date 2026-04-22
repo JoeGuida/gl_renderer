@@ -1,5 +1,5 @@
-#ifndef RENDERER_UINT_HPP
-#define RENDERER_UINT_HPP
+#ifndef RENDERER_TYPES_UINT_HPP
+#define RENDERER_TYPES_UINT_HPP
 
 #include <cstdint>
 

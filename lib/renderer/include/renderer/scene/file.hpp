@@ -1,5 +1,5 @@
-#ifndef RENDERER_FILE_HPP
-#define RENDERER_FILE_HPP
+#ifndef RENDERER_SCENE_FILE_HPP
+#define RENDERER_SCENE_FILE_HPP
 
 #include <expected>
 #include <filesystem>

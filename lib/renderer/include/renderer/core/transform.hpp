@@ -1,7 +1,7 @@
-#ifndef RENDERER_TRANSFORM_HPP
-#define RENDERER_TRANSFORM_HPP
+#ifndef RENDERER_CORE_TRANSFORM_HPP
+#define RENDERER_CORE_TRANSFORM_HPP
 
-#include <renderer/vector.hpp>
+#include "renderer/types/vec.hpp"
 
 struct Transform {
     vec3 position;

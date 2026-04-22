@@ -1,7 +1,7 @@
-#ifndef RENDERER_SHADER_STAGE_HPP
-#define RENDERER_SHADER_STAGE_HPP
+#ifndef RENDERER_CORE_SHADER_STAGE_HPP
+#define RENDERER_CORE_SHADER_STAGE_HPP
 
-#include <renderer/glcorearb.h>
+#include "renderer/gl/glcorearb.h"
 
 enum class ShaderStage : GLenum {
     Vertex      = GL_VERTEX_SHADER,

@@ -1,33 +1,34 @@
-#include <renderer/renderer.hpp>
+#include "renderer/core/renderer.hpp"
 
 #include <array>
 
 #include <window/win32.hpp>
 
-#include <renderer/convert.hpp>
-#include <renderer/gl_loader.hpp>
-#include <renderer/primitive.hpp>
-#include <renderer/shader.hpp>
-#include <renderer/vector.hpp>
-#include <renderer/wglext.h>
 #include <spdlog/spdlog.h>
 
+#include "renderer/api/gl_loader.hpp"
+#include "renderer/core/shader.hpp"
+#include "renderer/gl/wglext.h"
+#include "renderer/object/primitive.hpp"
+#include "renderer/types/vec.hpp"
+#include "renderer/util/convert.hpp"
+
 void add_primitive(Primitive primitive, const ObjectProperties& properties, Renderer& renderer) {
-    if(primitive == Primitive::Triangle && renderer.count.triangle < Settings::object_count) {
+    if(primitive == Primitive::Triangle && renderer.count.triangle < RendererSettings::object_count) {
         u32 index = Triangle::offset + renderer.count.triangle;
         renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
         renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
         ++renderer.count.triangle;
     }
 
-    if(primitive == Primitive::Quad && renderer.count.quad < Settings::object_count) {
+    if(primitive == Primitive::Quad && renderer.count.quad < RendererSettings::object_count) {
         u32 index = Quad::offset + renderer.count.quad;
         renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
         renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
         ++renderer.count.quad;
     }
 
-    if(primitive == Primitive::Cube && renderer.count.cube < Settings::object_count) {
+    if(primitive == Primitive::Cube && renderer.count.cube < RendererSettings::object_count) {
         u32 index = Cube::offset + renderer.count.cube;
         renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
         renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
