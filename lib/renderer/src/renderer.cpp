@@ -4,11 +4,8 @@
 
 #include <spdlog/spdlog.h>
 
-#include "window/win32.hpp"
-
 #include "renderer/api/gl_loader.hpp"
 #include "renderer/core/shader.hpp"
-#include "renderer/gl/wglext.h"
 #include "renderer/object/primitive.hpp"
 #include "renderer/types/vec.hpp"
 #include "renderer/util/convert.hpp"
@@ -82,8 +79,15 @@ std::expected<void, std::string> initialize_opengl(PlatformWindow* handle) {
     };
 
     HGLRC temp_context = wglCreateContext(handle->hdc);
+    if(!temp_context) {
+        return std::unexpected("failed to create temporary gl context");
+    }
+
     wglMakeCurrent(handle->hdc, temp_context);
-    load_wglCreateContextAttribsARB();
+    wglCreateContextAttribsARB = load_gl_function<PFNWGLCREATECONTEXTATTRIBSARBPROC>("wglCreateContextAttribsARB");
+    if(!wglCreateContextAttribsARB) {
+        return std::unexpected("failed to load gl function: wglCreateContextAttribsARB");
+    }
 
     wglMakeCurrent(nullptr, nullptr);
     wglDeleteContext(temp_context);
@@ -97,7 +101,10 @@ std::expected<void, std::string> initialize_opengl(PlatformWindow* handle) {
         return std::unexpected("failed to make gl context current");
     }
 
-    load_gl_functions();
+    auto functions = load_gl_functions();
+    if(!loaded) {
+        return std::unexpected(functions.error());
+    }
 
     handle->hglrc = hglrc;
     return {};

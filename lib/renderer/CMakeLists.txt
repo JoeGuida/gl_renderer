@@ -18,6 +18,7 @@ add_library(renderer STATIC
 
 target_include_directories(renderer PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/opengl
 )
 
-target_link_libraries(renderer window spdlog::spdlog_header_only)
+target_link_libraries(renderer opengl32 window spdlog::spdlog_header_only)

@@ -1,11 +1,13 @@
 #ifndef RENDERER_API_GL_LOADER_HPP
 #define RENDERER_API_GL_LOADER_HPP
 
-#include "window/win32.hpp"
-#include <GL/gl.h>
+#include <expected>
+#include <string>
 
-#include "renderer/gl/glcorearb.h"
-#include "renderer/gl/wglext.h"
+#include "window/win32.hpp"
+
+#include "opengl/glcorearb.h"
+#include "opengl/wglext.h"
 
 extern PFNGLATTACHSHADERPROC             glAttachShader;
 extern PFNGLBINDBUFFERPROC               glBindBuffer;
@@ -13,6 +15,8 @@ extern PFNGLBINDBUFFERBASEPROC           glBindBufferBase;
 extern PFNGLBUFFERDATAPROC               glBufferData;
 extern PFNGLBUFFERSUBDATAPROC            glBufferSubData;
 extern PFNGLBINDVERTEXARRAYPROC          glBindVertexArray;
+extern PFNGLCLEARPROC                    glClear;
+extern PFNGLCLEARCOLORPROC               glClearColor;
 extern PFNGLCOMPILESHADERPROC            glCompileShader;
 extern PFNGLCREATEPROGRAMPROC            glCreateProgram;
 extern PFNGLCREATESHADERPROC             glCreateShader;
@@ -41,8 +45,19 @@ extern PFNGLVERTEXATTRIBPOINTERPROC      glVertexAttribPointer;
 extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 
 inline bool loaded = false;
-void load_gl_functions();
-void load_wglCreateContextAttribsARB();
+
+template <typename T>
+auto load_gl_function(const char* name) {
+    void* f = (void*)wglGetProcAddress(name);
+    if(!f) {
+        static HMODULE module = LoadLibraryA("opengl32.dll");
+        f = (void*)GetProcAddress(module, name);
+    }
+
+    return reinterpret_cast<T>(f);
+}
+
+std::expected<void, std::string> load_gl_functions();
 
 #endif
 
