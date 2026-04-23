@@ -1,7 +1,7 @@
 #ifndef RENDERER_API_GL_LOADER_HPP
 #define RENDERER_API_GL_LOADER_HPP
 
-#include <window/win32.hpp>
+#include "window/win32.hpp"
 #include <GL/gl.h>
 
 #include "renderer/gl/glcorearb.h"

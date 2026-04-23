@@ -6,8 +6,6 @@
 #include <string>
 #include <variant>
 
-#include <window/win32.hpp>
-
 #include "renderer/api/gl_loader.hpp"
 #include "renderer/core/shader_stage.hpp"
 #include "renderer/scene/file.hpp"

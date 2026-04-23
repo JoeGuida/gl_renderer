@@ -2,9 +2,9 @@
 
 #include <array>
 
-#include <window/win32.hpp>
-
 #include <spdlog/spdlog.h>
+
+#include "window/win32.hpp"
 
 #include "renderer/api/gl_loader.hpp"
 #include "renderer/core/shader.hpp"

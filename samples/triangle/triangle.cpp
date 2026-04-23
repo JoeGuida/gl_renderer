@@ -2,7 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include <window/window.hpp>
+#include "window/window.hpp"
 
 #include "renderer/api/gl_loader.hpp"
 #include "renderer/core/logger.hpp"
@@ -42,6 +42,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     };
 
     add_primitive(Primitive::Triangle, properties, renderer);
+    setup_draw(renderer);
 
     // Shader Setup --------------------------------------------------------------------------------
 
@@ -50,18 +51,12 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         .stages = { ShaderStage::Vertex, ShaderStage::Fragment }
     };
 
-    auto compiled_shader = compile(shader, std::filesystem::current_path() / "samples" / "triangle");
-    if(!compiled_shader.has_value()) {
-        spdlog::error(compiled_shader.error().message);
-        return EXIT_FAILURE;
-    }
-
-    setup_draw(renderer);
+    auto id = exit_on_error(compile(shader, std::filesystem::current_path() / "samples" / "triangle"));
 
     // Main Loop -----------------------------------------------------------------------------------
 
-    auto draw_callback = [&renderer, &compiled_shader]() {
-        draw(renderer, compiled_shader.value());
+    auto draw_callback = [&renderer, &id]() {
+        draw(renderer, id);
     };
 
     spdlog::info("running window");
