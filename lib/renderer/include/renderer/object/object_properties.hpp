@@ -6,6 +6,7 @@
 
 struct ObjectProperties {
     vec3 position;
+    vec3 scale;
     Material material;
 };
 

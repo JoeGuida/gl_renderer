@@ -49,7 +49,7 @@ inline bool loaded = false;
 template <typename T>
 auto load_gl_function(const char* name) {
     void* f = (void*)wglGetProcAddress(name);
-    if(!f) {
+    if(!f) { // fallback to opengl32.dll for core functions
         static HMODULE module = LoadLibraryA("opengl32.dll");
         f = (void*)GetProcAddress(module, name);
     }

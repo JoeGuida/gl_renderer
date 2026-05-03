@@ -10,6 +10,7 @@
 
 struct ObjectData {
     std::array<vec4, RendererSettings::total_object_count> positions;
+    std::array<vec4, RendererSettings::total_object_count> scales;
     std::array<vec4, RendererSettings::total_object_count> colors;
 };
 

@@ -3,6 +3,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <spdlog/spdlog.h>
 
+#include "input/input.hpp"
+
 #include "window/window.hpp"
 
 #include "renderer/api/gl_loader.hpp"
@@ -16,13 +18,17 @@
 #include "renderer/types/uint.hpp"
 #include "renderer/util/errors.hpp"
 
+void move_camera(Camera& camera) {
+    camera.transform.position += vec3(0.0f, 0.0f, -1.0f) * 0.1f;
+}
+
 int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_window) {
 #ifdef DEBUG
     // sometimes tools like RenderDoc need to be attached to the process before opengl is initialized
     MessageBoxA(nullptr, "Continue?", "Continue?", MB_OK);
 #endif
 
-    // Renderer / Window Setup ---------------------------------------------------------------------
+    // Renderer / Window Setup --------------------------------------------------------------------
     exit_on_error(init_logger());
 
     SceneSettings settings {
@@ -35,12 +41,13 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     Renderer renderer { .window_handle = window.handle.get() };
     exit_on_error(initialize_renderer(renderer));
 
-    // Object Setup --------------------------------------------------------------------------------
+    // Object Setup -------------------------------------------------------------------------------
 
     ObjectProperties properties {
         .position = glm::vec3(0.0f, 0.0f, 0.0f),
+        .scale = glm::vec3(0.5f, 0.5f, 1.0f),
         .material = {
-            .color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+            .color = glm::vec4(0.1f, 0.0f, 0.0f, 1.0f)
         }
     };
 
@@ -50,7 +57,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         .transform = Transform::Empty,
         .direction = vec3(0.0f, 0.0f, 1.0f),
         .aspect = settings.width / static_cast<f32>(settings.height),
-        .fov = 90.0f,
+        .fov = glm::radians(90.0f),
         .near = 0.01f,
         .far = 10.0f
     };
@@ -58,7 +65,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     auto projection = glm::perspective(camera.fov, camera.aspect, camera.near, camera.far);
     auto view = glm::lookAt(camera.transform.position, camera.transform.position + camera.direction, vec3(0.0f, 1.0f, 0.0f));
 
-    // Shader Setup --------------------------------------------------------------------------------
+    // Shader Setup -------------------------------------------------------------------------------
 
     Shader shader {
         .name = "camera",
@@ -73,7 +80,13 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
 
     setup_draw(renderer);
 
-    // Main Loop -----------------------------------------------------------------------------------
+    // Input --------------------------------------------------------------------------------------
+
+    Input input;
+    setup_input_devices(input, window.handle->hwnd);
+    bind(InputAction::MoveForward, InputState::Down, [&camera](){ camera.transform.position += vec3(0.0f, 0.0f, -1.0f) * 0.1f; });
+
+    // Main Loop ----------------------------------------------------------------------------------
 
     auto draw_callback = [&renderer, &compiled_shader]() {
         draw(renderer, compiled_shader.value());

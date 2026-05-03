@@ -14,6 +14,7 @@ void add_primitive(Primitive primitive, const ObjectProperties& properties, Rend
     if(primitive == Primitive::Triangle && renderer.count.triangle < RendererSettings::object_count) {
         u32 index = Triangle::offset + renderer.count.triangle;
         renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
+        renderer.object_data.scales[index] = Convert::to_vec4(properties.scale);
         renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
         ++renderer.count.triangle;
     }
@@ -21,6 +22,7 @@ void add_primitive(Primitive primitive, const ObjectProperties& properties, Rend
     if(primitive == Primitive::Quad && renderer.count.quad < RendererSettings::object_count) {
         u32 index = Quad::offset + renderer.count.quad;
         renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
+        renderer.object_data.scales[index] = Convert::to_vec4(properties.scale);
         renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
         ++renderer.count.quad;
     }
@@ -28,6 +30,7 @@ void add_primitive(Primitive primitive, const ObjectProperties& properties, Rend
     if(primitive == Primitive::Cube && renderer.count.cube < RendererSettings::object_count) {
         u32 index = Cube::offset + renderer.count.cube;
         renderer.object_data.positions[index] = Convert::to_vec4(properties.position);
+        renderer.object_data.scales[index] = Convert::to_vec4(properties.scale);
         renderer.object_data.colors[index] = Convert::to_vec4(properties.material.color);
         ++renderer.count.cube;
     }
@@ -120,13 +123,17 @@ std::expected<void, std::string> initialize_renderer(Renderer& renderer) {
     glGenBuffers(1, &renderer.ebo);
     glGenBuffers(1, &renderer.ubo);
 
+    size_t positions_size = sizeof(vec4) * renderer.object_data.positions.size();
+    size_t scales_size = sizeof(vec4) * renderer.object_data.scales.size();
+    size_t colors_size = sizeof(vec4) * renderer.object_data.colors.size();
+
     glBindVertexArray(renderer.vao);
     glBindBuffer(GL_ARRAY_BUFFER, renderer.vbo);
     glBufferData(GL_ARRAY_BUFFER, Unified::vertex_count * sizeof(Vertex), Unified::vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer.ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, Unified::index_count * sizeof(u32), Unified::indices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, renderer.ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(vec4) * renderer.object_data.positions.size() + sizeof(vec4) * renderer.object_data.colors.size(), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, positions_size + scales_size + colors_size, nullptr, GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
@@ -139,8 +146,11 @@ void setup_draw(Renderer& renderer) {
 }
 
 void upload_ubo(Renderer& renderer) {
+    size_t buffer_size = sizeof(vec4) * renderer.object_data.positions.size();
+
     glBindBuffer(GL_UNIFORM_BUFFER, renderer.ubo);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vec4) * renderer.object_data.positions.size(), renderer.object_data.positions.data());
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(vec4) * renderer.object_data.positions.size(), sizeof(vec4) * renderer.object_data.colors.size(), renderer.object_data.colors.data());
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer_size, renderer.object_data.positions.data());
+    glBufferSubData(GL_UNIFORM_BUFFER, buffer_size, buffer_size, renderer.object_data.scales.data());
+    glBufferSubData(GL_UNIFORM_BUFFER, buffer_size * 2, buffer_size, renderer.object_data.colors.data());
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, renderer.ubo);
 }
