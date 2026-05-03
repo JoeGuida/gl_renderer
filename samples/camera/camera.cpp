@@ -14,6 +14,7 @@
 #include "renderer/core/shader.hpp"
 #include "renderer/core/transform.hpp"
 #include "renderer/object/primitive.hpp"
+#include "renderer/settings/scene_settings.hpp"
 #include "renderer/types/float.hpp"
 #include "renderer/types/uint.hpp"
 #include "renderer/util/errors.hpp"

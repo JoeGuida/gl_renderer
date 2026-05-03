@@ -11,6 +11,7 @@
 #include "renderer/object/primitive.hpp"
 #include "renderer/settings/scene_settings.hpp"
 #include "renderer/types/uint.hpp"
+#include "renderer/util/errors.hpp"
 
 int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_window) {
 #ifdef DEBUG

@@ -9,7 +9,9 @@
 #include "renderer/core/renderer.hpp"
 #include "renderer/core/shader.hpp"
 #include "renderer/object/primitive.hpp"
+#include "renderer/settings/scene_settings.hpp"
 #include "renderer/types/uint.hpp"
+#include "renderer/util/errors.hpp"
 
 int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_window) {
 #ifdef DEBUG
@@ -41,6 +43,7 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     };
 
     add_primitive(Primitive::Cube, properties, renderer);
+    setup_draw(renderer);
 
     // Shader Setup --------------------------------------------------------------------------------
 
@@ -49,18 +52,12 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
         .stages = { ShaderStage::Vertex, ShaderStage::Fragment }
     };
 
-    auto compiled_shader = compile(shader, std::filesystem::current_path() / "samples" / "cube");
-    if(!compiled_shader.has_value()) {
-        spdlog::error(compiled_shader.error().message);
-        return EXIT_FAILURE;
-    }
-
-    setup_draw(renderer);
+    auto id = exit_on_error(compile(shader, std::filesystem::current_path() / "samples" / "cube"));
 
     // Main Loop -----------------------------------------------------------------------------------
 
-    auto draw_callback = [&renderer, &compiled_shader]() {
-        draw(renderer, compiled_shader.value());
+    auto draw_callback = [&renderer, &id]() {
+        draw(renderer, id);
     };
 
     spdlog::info("running window");

@@ -32,7 +32,11 @@ struct InputBinding {
 };
 
 struct Input {
-    std::array<RAWINPUTDEVICE, 2> devices;
+
+};
+
+enum class KeyCode : uint32_t {
+
 };
 
 inline std::unordered_map<KeyCode, InputAction> key_to_action;

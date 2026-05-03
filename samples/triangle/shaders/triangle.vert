@@ -7,6 +7,7 @@ layout (location = 0) in vec3 pos;
 
 layout (std140, binding = 0) uniform vertex_data {
     vec4 positions[N * P];
+    vec4 scales[N * P];
     vec4 colors[N * P];
 };
 
