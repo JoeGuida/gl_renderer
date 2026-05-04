@@ -2,8 +2,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include "input/input.hpp"
 #include "window/window.hpp"
-
 #include "renderer/api/gl_loader.hpp"
 #include "renderer/core/logger.hpp"
 #include "renderer/core/renderer.hpp"
@@ -53,6 +53,19 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
     };
 
     auto id = exit_on_error(compile(shader, std::filesystem::current_path() / "samples" / "triangle"));
+
+    // Input --------------------------------------------------------------------------------------
+
+    setup_input_devices(window.handle->hwnd);
+
+    InputBinding close_window {
+        .keycode = KeyCode::Escape,
+        .action = InputAction::Call,
+        .trigger = KeyState::Pressed,
+        .callback = [&window](){ DestroyWindow(window.handle->hwnd); }
+    };
+
+    bind(close_window);
 
     // Main Loop -----------------------------------------------------------------------------------
 

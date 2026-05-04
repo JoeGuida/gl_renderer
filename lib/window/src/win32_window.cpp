@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include "input/input.hpp"
+
 #ifndef GL_CONTEXT_MACROS
 #define GL_CONTEXT_MACROS
 
@@ -24,17 +26,20 @@ std::pair<uint32_t, uint32_t> get_window_size(PlatformWindow* window) {
 void run_window(PlatformWindow* handle, std::function<void()> draw) {
     MSG message;
     ZeroMemory(&message, sizeof(MSG));
-    while (true) {
-        if (PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
+
+    while(true) {
+        while(PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
             if (message.message == WM_QUIT) {
-                break;
+                return;
             }
 
             TranslateMessage(&message);
             DispatchMessage(&message);
         }
 
+        input_update();
         draw();
+
         SwapBuffers(handle->hdc);
     }
 }
@@ -45,6 +50,22 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpar
             return 0;
         }
         case WM_INPUT: {
+            handle_inputs(lparam);
+            return 0;
+        }
+        case WM_PAINT: {
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, &ps);
+
+            RECT rect;
+            GetClientRect(hwnd, &rect);
+
+            HBRUSH brush = CreateSolidBrush(RGB(100, 149, 237)); // cornflower blue
+            FillRect(hdc, &rect, brush);
+            DeleteObject(brush);
+
+            EndPaint(hwnd, &ps);
+
             return 0;
         }
         case WM_DESTROY: {
@@ -102,3 +123,4 @@ std::expected<Window, std::string> initialize_window(HINSTANCE instance, int sho
         .handle = std::move(handle)
     };
 }
+

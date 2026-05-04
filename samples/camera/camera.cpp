@@ -4,9 +4,7 @@
 #include <spdlog/spdlog.h>
 
 #include "input/input.hpp"
-
 #include "window/window.hpp"
-
 #include "renderer/api/gl_loader.hpp"
 #include "renderer/core/camera.hpp"
 #include "renderer/core/logger.hpp"
@@ -83,9 +81,16 @@ int WinMain(HINSTANCE instance, HINSTANCE unused, LPSTR command_line, int show_w
 
     // Input --------------------------------------------------------------------------------------
 
-    Input input;
-    setup_input_devices(input, window.handle->hwnd);
-    bind(InputAction::MoveForward, InputState::Down, [&camera](){ camera.transform.position += vec3(0.0f, 0.0f, -1.0f) * 0.1f; });
+    setup_input_devices(window.handle->hwnd);
+
+    InputBinding close_window {
+        .keycode = KeyCode::Escape,
+        .action = InputAction::Call,
+        .trigger = KeyState::Pressed,
+        .callback = [&window](){ DestroyWindow(window.handle->hwnd); }
+    };
+
+    bind(close_window);
 
     // Main Loop ----------------------------------------------------------------------------------
 
